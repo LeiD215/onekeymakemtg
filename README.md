@@ -1,4 +1,12 @@
 
+# 自用MTG的whunt1修改版。
+
+2.0.1由于脚本中iptables设置和部分系统有冲突，去除脚本中所有iptables设置，端口需自行手动打开。
+
+```bash
+wget -N --no-check-certificate https://github.com/LeiD215/onekeymakemtg/raw/master/mtproxy_go.sh && chmod +x mtproxy_go.sh && bash mtproxy_go.sh
+```
+
 # 编译安装最新版 mtproxy-go 一键脚本   
 因为go版mtproxy代码更新了抗重放攻击等功能后，原作者没有直接放出编译好的程序，所以根据逗比原版一键脚本魔改，直接拉取最新代码进行编译，**最新版已经支持 TLS 伪装**
    
