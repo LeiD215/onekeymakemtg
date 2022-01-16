@@ -5,11 +5,11 @@ export PATH
 #=================================================
 #	System Required: CentOS/Debian/Ubuntu
 #	Description: MTProxy Golang
-#	Version: 2.0.0
+#	Version: 2.0.1
 #	Author: Toyo && July
 #=================================================
 
-sh_ver="2.0.0"
+sh_ver="2.0.1"
 filepath=$(cd "$(dirname "$0")"; pwd)
 file_1=$(echo -e "${filepath}"|awk -F "$0" '{print $1}')
 file="/usr/local/mtproxy-go"
@@ -149,7 +149,7 @@ Download(){
 }
 Service(){
 	if [[ ${release} = "centos" ]]; then
-		if ! wget --no-check-certificate "https://raw.githubusercontent.com/whunt1/onekeymakemtg/master/mtproxy_go_centos" -O /etc/init.d/mtproxy-go; then
+		if ! wget --no-check-certificate "https://github.com/LeiD215/onekeymakemtg/raw/master/mtproxy_go_centos" -O /etc/init.d/mtproxy-go; then
 			echo -e "${Error} MTProxy服务 管理脚本下载失败 !"
 			rm -rf "${file}"
 			exit 1
@@ -158,7 +158,7 @@ Service(){
 		chkconfig --add mtproxy-go
 		chkconfig mtproxy-go on
 	else
-		if ! wget --no-check-certificate "https://raw.githubusercontent.com/whunt1/onekeymakemtg/master/mtproxy_go_debian" -O /etc/init.d/mtproxy-go; then
+		if ! wget --no-check-certificate "https://github.com/LeiD215/onekeymakemtg/raw/master/mtproxy_go_debian" -O /etc/init.d/mtproxy-go; then
 			echo -e "${Error} MTProxy服务 管理脚本下载失败 !"
 			rm -rf "${file}"
 			exit 1
@@ -341,8 +341,6 @@ Set(){
 		mtp_nat_ipv6=${nat_ipv6}
 		mtp_secure=${secure}
 		Write_config
-		Del_iptables
-		Add_iptables
 		Restart
 	elif [[ "${mtp_modify}" == "2" ]]; then
 		Read_config
@@ -421,12 +419,6 @@ Install(){
 	Set_secure
 	echo -e "${Info} 开始写入 配置文件..."
 	Write_config
-	echo -e "${Info} 开始设置 iptables防火墙..."
-	Set_iptables
-	echo -e "${Info} 开始添加 iptables防火墙规则..."
-	Add_iptables
-	echo -e "${Info} 开始保存 iptables防火墙规则..."
-	Save_iptables
 	echo -e "${Info} 所有步骤 安装完毕，开始启动..."
 	Start
 }
@@ -470,8 +462,6 @@ Uninstall(){
 		[[ ! -z $PID ]] && kill -9 ${PID}
 		if [[ -e ${mtproxy_conf} ]]; then
 			port=$(cat ${mtproxy_conf}|grep 'PORT = '|awk -F 'PORT = ' '{print $NF}')
-			Del_iptables
-			Save_iptables
 		fi
 		if [[ ! -z $(crontab -l | grep "mtproxy_go.sh monitor") ]]; then
 			crontab_monitor_cron_stop
@@ -743,44 +733,14 @@ crontab_monitorip(){
 		Restart
 	fi
 }
-Add_iptables(){
-	iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport ${mtp_port} -j ACCEPT
-	ip6tables -I INPUT -m state --state NEW -m tcp -p tcp --dport ${mtp_port} -j ACCEPT
-}
-Del_iptables(){
-	iptables -D INPUT -m state --state NEW -m tcp -p tcp --dport ${port} -j ACCEPT
-	ip6tables -D INPUT -m state --state NEW -m tcp -p tcp --dport ${port} -j ACCEPT
-}
-Save_iptables(){
-	if [[ ${release} == "centos" ]]; then
-		service iptables save
-		service ip6tables save
-	else
-		iptables-save > /etc/iptables.up.rules
-		ip6tables-save > /etc/ip6tables.up.rules
-	fi
-}
-Set_iptables(){
-	if [[ ${release} == "centos" ]]; then
-		service iptables save
-		service ip6tables save
-		chkconfig --level 2345 iptables on
-		chkconfig --level 2345 ip6tables on
-	else
-		iptables-save > /etc/iptables.up.rules
-		ip6tables-save > /etc/ip6tables.up.rules
-		echo -e '#!/bin/bash\n/sbin/iptables-restore < /etc/iptables.up.rules\n/sbin/ip6tables-restore < /etc/ip6tables.up.rules' > /etc/network/if-pre-up.d/iptables
-		chmod +x /etc/network/if-pre-up.d/iptables
-	fi
-}
 Update_Shell(){
-	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/whunt1/onekeymakemtg/master/mtproxy_go.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
+	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://github.com/LeiD215/onekeymakemtg/raw/master/mtproxy_go.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
 	[[ -z ${sh_new_ver} ]] && echo -e "${Error} 无法链接到 Github !" && exit 0
 	if [[ -e "/etc/init.d/mtproxy-go" ]]; then
 		rm -rf /etc/init.d/mtproxy-go
 		Service
 	fi
-	wget -N --no-check-certificate "https://raw.githubusercontent.com/whunt1/onekeymakemtg/master/mtproxy_go.sh" && chmod +x mtproxy_go.sh
+	wget -N --no-check-certificate "https://github.com/LeiD215/onekeymakemtg/raw/master/mtproxy_go.sh" && chmod +x mtproxy_go.sh
 	echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] !(注意：因为更新方式为直接覆盖当前运行的脚本，所以可能下面会提示一些报错，无视即可)" && exit 0
 }
 check_sys
